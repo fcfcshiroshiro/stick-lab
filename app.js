@@ -147,8 +147,7 @@ function finish(){
 }
 function score(ok,a){attempts++;if(ok){hits++;streak++;playHitSound();times.push(roundAge*1000);errors.push(difference(a,target));$('feedback').textContent=`命中 +1 · 误差 ${difference(a,target).toFixed(1)}°`;}else{streak=0;$('feedback').textContent='未命中 · 回到中心，准备下一次';}cooldown=.28;hold=0;stats();}
 function inputs(){
-  let pads=[];try{pads=Array.from(navigator.getGamepads?.()||[]).filter(Boolean);}catch{}
-  const p=pads[0];padSeen=!!p;$('connection').textContent=p?'● '+p.id.slice(0,32):$('keyboard').checked?'● 键盘试练模式':'○ 等待手柄连接';$('connection').style.color=(p||$('keyboard').checked)?'#d2f86b':'';
+  const p=InputDevices.poll();padSeen=!!p;$('connection').textContent=p?'● '+p.id.slice(0,32):$('keyboard').checked?'● 键盘试练模式':'○ 等待手柄连接';$('connection').style.color=(p||$('keyboard').checked)?'#d2f86b':'';
   let left=[0,0],right=[0,0],l1=!!p?.buttons?.[4]?.pressed;
   if(p){const a=p.axes;left=[a[0]||0,a[1]||0];right=$('mapping').value==='alternate'?[a[3]||0,a[4]||0]:[a[2]||0,a[3]||0];if($('mapping').value==='swapped')[left,right]=[right,left];}
   if($('keyboard').checked){left=[+keys.has('d')-+keys.has('a'),+keys.has('s')-+keys.has('w')];right=[+keys.has('ArrowRight')-+keys.has('ArrowLeft'),+keys.has('ArrowDown')-+keys.has('ArrowUp')];for(const v of [left,right]){const m=Math.hypot(...v);if(m>1){v[0]/=m;v[1]/=m;}}const force=keys.has('Shift')?.3:keys.has('Alt')?.6:1;left=left.map(n=>n*force);}
@@ -244,7 +243,16 @@ document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{mode=b.dataset.mode
 $('dead').oninput=()=>{$('deadValue').textContent=$('dead').value+'%';};for(const id of ['difficulty','duration','keyboard','pattern','sectorSpeed','tempo','motion','rotation','motionRate','motionDirection'])$(id).onchange=refreshMode;
 $('assist').oninput=()=>{$('assistValue').textContent='±'+$('assist').value+'°';refreshMode();};
 $('latency').oninput=()=>{$('latencyValue').textContent=$('latency').value+' ms';delayBuffer.reset(performance.now());try{localStorage.setItem('sticklab-latency',$('latency').value);}catch{}readBest();};
-window.addEventListener('keydown',e=>{if(e.target.matches('input,select')||(e.target.matches('button')&&e.key===' '))return;if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)||($('keyboard').checked&&e.key==='Alt'))e.preventDefault();if(e.key===' '&&!e.repeat)toggle();if(e.key.toLowerCase()==='q'&&!e.repeat)qPulse=true;keys.add(e.key.length===1?e.key.toLowerCase():e.key);});
+window.addEventListener('keydown',e=>{if($('deviceDialog').open)return;if(e.target.matches('input,select')||(e.target.matches('button')&&e.key===' '))return;if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)||($('keyboard').checked&&e.key==='Alt'))e.preventDefault();if(e.key===' '&&!e.repeat)toggle();if(e.key.toLowerCase()==='q'&&!e.repeat)qPulse=true;keys.add(e.key.length===1?e.key.toLowerCase():e.key);});
 window.addEventListener('keyup',e=>keys.delete(e.key.length===1?e.key.toLowerCase():e.key));window.addEventListener('blur',()=>{keys.clear();qPulse=false;if(state==='running')toggle();});document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='running')toggle();});refreshMode();requestAnimationFrame(frame);
 
 
+
+function prepareDeviceSwitch(){if(state==='running')toggle();keys.clear();qPulse=false;delayBuffer.reset(performance.now());armed=false;FormationSim.resume();Freestyle.resume();}
+$('deviceOpen').onclick=()=>{prepareDeviceSwitch();$('deviceMapping').value=$('mapping').value;InputDevices.open();};
+$('deviceList').onchange=()=>{prepareDeviceSwitch();if($('deviceList').value!==''&&InputDevices.select(Number($('deviceList').value))){$('keyboard').checked=false;$('keyboardNote').hidden=true;}InputDevices.poll();};
+$('deviceRefresh').onclick=()=>{InputDevices.poll();};
+$('deviceMapping').onchange=()=>{prepareDeviceSwitch();$('mapping').value=$('deviceMapping').value;};
+$('deviceClose').onclick=$('deviceDone').onclick=()=>{$('deviceDialog').close();keys.clear();qPulse=false;delayBuffer.reset(performance.now());};
+
+$('deviceOpenTraining').onclick=$('deviceOpen').onclick;

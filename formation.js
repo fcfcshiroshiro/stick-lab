@@ -26,15 +26,21 @@ for(const p of [...ps].sort((a,b)=>a.y-b.y)){
 const current=p.id===selected,target=p.id===goal,k=Math.max(.55,p.scale),phase=clock*(p.rate||.8)*7+(p.phase||0),stride=p.id?Math.sin(phase)*5:Math.sin(clock*2)*.6;
 ctx.save();ctx.translate(p.x,p.y);ctx.scale(k,k);
 ctx.fillStyle='#182b2260';ctx.beginPath();ctx.ellipse(9,2,14,4,-.3,0,Math.PI*2);ctx.fill();
-if(target||current){ctx.strokeStyle=target?'#ffe780':'#93efff';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(0,0,11,4,0,0,Math.PI*2);ctx.stroke();}
+if(target||current){const color=target?'#ffdf36':'#42edff';ctx.fillStyle=target?'#ffdf3650':'#42edff50';ctx.strokeStyle=color;ctx.lineWidth=3;ctx.shadowColor=color;ctx.shadowBlur=12;ctx.beginPath();ctx.ellipse(0,0,17,6,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;}
 ctx.lineCap='round';ctx.lineWidth=4;ctx.strokeStyle='#f2f3e6';ctx.beginPath();ctx.moveTo(-3,-15);ctx.lineTo(-4-stride*.4,-7);ctx.lineTo(-5+stride,0);ctx.moveTo(3,-15);ctx.lineTo(4+stride*.4,-7);ctx.lineTo(5-stride,0);ctx.stroke();
 ctx.strokeStyle='#202725';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-5+stride,0);ctx.lineTo(-2+stride,1);ctx.moveTo(5-stride,0);ctx.lineTo(8-stride,1);ctx.stroke();
 ctx.fillStyle='#253540';ctx.fillRect(-5,-20,10,7);ctx.fillStyle=p.id===0?'#a9d4e0':'#f5f4ec';ctx.beginPath();ctx.moveTo(-6,-33);ctx.lineTo(6,-33);ctx.lineTo(5,-20);ctx.lineTo(-5,-20);ctx.closePath();ctx.fill();
 ctx.strokeStyle='#d6b99d';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-6,-31);ctx.lineTo(-9,-24+stride*.5);ctx.lineTo(-8,-20+stride);ctx.moveTo(6,-31);ctx.lineTo(9,-24-stride*.5);ctx.lineTo(8,-20-stride);ctx.stroke();
 ctx.fillStyle='#d6b99d';ctx.beginPath();ctx.arc(0,-38,4,0,Math.PI*2);ctx.fill();ctx.fillStyle='#242622';ctx.beginPath();ctx.arc(-.5,-40,3.6,Math.PI,Math.PI*2);ctx.fill();
 ctx.fillStyle='#344239';ctx.font='bold 7px sans-serif';ctx.textAlign='center';ctx.fillText(p.id+1,0,-24);
-if(current||target||p.id===0){ctx.fillStyle=target?'#ffe36c':current?'#8fe9ff':'#dbe5e0';ctx.strokeStyle='#15251d';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-5,-53);ctx.lineTo(5,-53);ctx.lineTo(0,-45);ctx.closePath();ctx.fill();ctx.stroke();ctx.font='bold 10px sans-serif';ctx.fillText(target?'目标':current?'当前': 'L1',0,-59);}
+if(p.id===0&&!current&&!target){ctx.fillStyle='#edf4e6';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText('L1',0,-48);}
 ctx.restore();}
+// Overlay labels after every player: constant screen size, never hidden by another model.
+for(const p of ps.filter(p=>p.id===selected||p.id===goal)){
+const target=p.id===goal,color=target?'#ffdf36':'#42edff',k=Math.max(.55,p.scale),cy=p.y-44*k,labelY=cy-35;
+ctx.save();ctx.textAlign='center';ctx.lineWidth=2;ctx.strokeStyle='#10231d';ctx.fillStyle=color;ctx.shadowColor='#07140c';ctx.shadowBlur=5;
+ctx.beginPath();ctx.moveTo(p.x-10,cy-17);ctx.lineTo(p.x+10,cy-17);ctx.lineTo(p.x,cy-3);ctx.closePath();ctx.fill();ctx.stroke();
+ctx.fillRect(p.x-31,labelY-15,62,24);ctx.strokeRect(p.x-31,labelY-15,62,24);ctx.shadowBlur=0;ctx.fillStyle='#10231d';ctx.font='bold 15px sans-serif';ctx.fillText(target?'目标':'当前',p.x,labelY+3);ctx.restore();}
 ctx.fillStyle='#13281eaa';ctx.fillRect(12,12,Math.min(w-24,330),29);ctx.font='12px sans-serif';ctx.textAlign='left';ctx.fillStyle='#f1f4e7';ctx.fillText('右杆切人 · L1 回起始球员 · 黄色为目标',23,31);
 }
 return {reset,update,positions,pick,step,resume,getState,draw};})();
